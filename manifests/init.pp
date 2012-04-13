@@ -1,3 +1,3 @@
-class zfsonlinux extends zfsonlinux::params {
+class zfsonlinux inherits zfsonlinux::params {
   include 'zfsonlinux::install'
 }

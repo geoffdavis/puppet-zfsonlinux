@@ -59,14 +59,14 @@ class zfsonlinux::install::redhat (
     command => 'make rpm',
     cwd       => "${staging::path}/zfsonlinux/${spl_installer_dir}",
     logoutput => on_failure,
-    require   => :Exec['configure spl'],
+    require   => Exec['configure spl'],
   }
 
   exec { 'install spl rpms':
-    command   => "rpm -Uvh *.${arch}.rpm"
+    command   => "rpm -Uvh *.${arch}.rpm",
     cwd       => "${staging::path}/zfsonlinux/${spl_installer_dir}",
     logoutput => on_failure,
-    require   => :Exec['build spl'],
+    require   => Exec['build spl'],
     user      => 0,
     group     => 0,
   }
@@ -89,14 +89,14 @@ class zfsonlinux::install::redhat (
     command => 'make rpm',
     cwd       => "${staging::path}/zfsonlinux/${zfs_installer_dir}",
     logoutput => on_failure,
-    require   => :Exec['configure zfs'],
+    require   => Exec['configure zfs'],
   }
 
   exec { 'install zfs rpms':
-    command   => "rpm -Uvh *.${arch}.rpm"
+    command   => "rpm -Uvh *.${arch}.rpm",
     cwd       => "${staging::path}/zfsonlinux/${zfs_installer_dir}",
     logoutput => on_failure,
-    require   => :Exec['build zfs'],
+    require   => Exec['build zfs'],
     user      => 0,
     group     => 0,
   }
