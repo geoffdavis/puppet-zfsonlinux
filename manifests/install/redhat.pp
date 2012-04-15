@@ -20,6 +20,11 @@ class zfsonlinux::install::redhat (
   $zfs_source_url = "${download_dir}/zfs/${zfs_installer_tar}"
 
   ###
+  # Set resource defaults
+  ###
+  Exec { path => '/usr/local/bin:/usr/bin:/bin', }
+
+  ###
   # Stage the installers
   ###
 
@@ -48,10 +53,10 @@ class zfsonlinux::install::redhat (
   ##
 
   exec { 'configure spl':
-    command   => './configure',
+    command   => "${staging::path}/zfsonlinux/${spl_installer_dir}/configure",
     cwd       => "${staging::path}/zfsonlinux/${spl_installer_dir}",
     logoutput => on_failure,
-    creates   => "${staging::path}/zfsonlinux/${spl_installer_dir}/Makefile",
+    #    creates   => "${staging::path}/zfsonlinux/${spl_installer_dir}/Makefile",
     require   => Staging::Extract[$spl_installer_tar],
   }
 
@@ -63,7 +68,7 @@ class zfsonlinux::install::redhat (
   }
 
   exec { 'install spl rpms':
-    command   => "rpm -Uvh *.${arch}.rpm",
+    command   => "rpm -Uvh *.${::hardwareisa}.rpm",
     cwd       => "${staging::path}/zfsonlinux/${spl_installer_dir}",
     logoutput => on_failure,
     require   => Exec['build spl'],
@@ -75,10 +80,10 @@ class zfsonlinux::install::redhat (
   # Perform build of zfs
   ###
   exec { 'configure zfs':
-    command   => './configure',
+    command   => "${staging::path}/zfsonlinux/${zfs_installer_dir}/configure",
     cwd       => "${staging::path}/zfsonlinux/${zfs_installer_dir}",
     logoutput => on_failure,
-    creates   => "${staging::path}/zfsonlinux/${zfs_installer_dir}/Makefile",
+    # creates   => "${staging::path}/zfsonlinux/${zfs_installer_dir}/Makefile",
     require   => [
       Staging::Extract[$zfs_installer_tar],
       Exec['install spl rpms'],
@@ -93,7 +98,7 @@ class zfsonlinux::install::redhat (
   }
 
   exec { 'install zfs rpms':
-    command   => "rpm -Uvh *.${arch}.rpm",
+    command   => "rpm -Uvh *.${::hardwareisa}.rpm",
     cwd       => "${staging::path}/zfsonlinux/${zfs_installer_dir}",
     logoutput => on_failure,
     require   => Exec['build zfs'],
