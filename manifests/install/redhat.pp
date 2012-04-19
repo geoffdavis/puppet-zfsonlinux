@@ -1,7 +1,7 @@
 class zfsonlinux::install::redhat (
   $download_dir = $zfsonlinux::params::download_dir,
-  $spl_version  = $zfsonlinux::params::spl_version,
-  $zfs_version  = $zfsonlinux::params::zfs_version,
+  $spl_version  = $zfsonlinux::params::version,
+  $zfs_version  = $zfsonlinux::params::version,
   $timeout      = $zfsonlinux::params::install_timeout
 ) inherits zfsonlinux::params {
 
