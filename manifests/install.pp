@@ -99,7 +99,7 @@ class zfsonlinux::install(
   # Set up internal variables
   $real_spl_version = $zfsonlinux::install::spl_version ? {
     ''      => $zfsonlinux::install::version,
-    default => $zfsonlinux::install::zfs_version,
+    default => $zfsonlinux::install::spl_version,
   }
   $real_zfs_version = $zfsonlinux::install::zfs_version ? {
     ''      => $zfsonlinux::install::version,
