@@ -53,6 +53,8 @@
 #
 # Specifiying a different version of spl_version and zfs_version may not work
 #
+# Downgrading an already installed version of spl or zfs will not work
+#
 # == Authors
 #
 # Geoff Davis <geoff@geoffdavis.com>
