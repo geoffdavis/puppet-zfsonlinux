@@ -78,10 +78,10 @@
 # limitations under the License.
 #
 class zfsonlinux::install(
-  version = $zfsonlinux::params::version,
-  zfs_version = undef,
-  spl_version = undef,
-  timeout = $zfsonlinux::params::timeout
+  $version = $zfsonlinux::params::version,
+  $zfs_version = undef,
+  $spl_version = undef,
+  $timeout = $zfsonlinux::params::timeout
 ) inherits zfsonlinux::params{
 
   ###
