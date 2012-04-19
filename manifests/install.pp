@@ -113,6 +113,7 @@ class zfsonlinux::install(
         timeout     => $timeout,
         zfs_version => $real_zfs_version,
         spl_version => $real_spl_version,
+        verbose     => $verbose,
       }
       Class['zfsonlinux::reqs::redhat_devel'] -> Class['zfsonlinux::install::redhat']
     }
