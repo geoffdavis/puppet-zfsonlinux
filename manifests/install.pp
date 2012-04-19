@@ -23,7 +23,8 @@
 #   The timeout value to use for each step of the staging and build process.
 #
 # [*verbose*]
-#   Turn on verbose mode when building ZFSOnLinux
+#   Turn on verbose mode when building ZFSOnLinux. Should be true or false.
+#   Defaults to false.
 #
 # === Advanced Parameters
 #
@@ -89,6 +90,12 @@ class zfsonlinux::install(
 ) inherits zfsonlinux::params{
 
   ###
+  # Validate parameters
+  validate_bool($verbose)
+  validate_string($version)
+  validate_re($timeout, [ '^[0-9]+', '' ])
+
+  ###
   # Set up internal variables
   $real_spl_version = $zfsonlinux::install::spl_version ? {
     ''      => $zfsonlinux::install::version,
@@ -106,6 +113,7 @@ class zfsonlinux::install(
         timeout     => $timeout,
         zfs_version => $real_zfs_version,
         spl_version => $real_spl_version,
+        verbose     => $verbose,
       }
       Class['zfsonlinux::reqs::redhat_devel'] -> Class['zfsonlinux::install::redhat']
     }
