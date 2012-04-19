@@ -26,6 +26,11 @@
 #   Turn on verbose mode when building ZFSOnLinux. Should be true or false.
 #   Defaults to false.
 #
+# [*upgrade*]
+#   Upgrade packages if they are already installed. Defaults to false since
+#   this can leave a system unable to access critical filesystems if the ZFS
+#   packages are removed while a system is running.
+#
 # === Advanced Parameters
 #
 # [*spl_version*]
@@ -56,16 +61,20 @@
 # ZFSOnLinux.
 #
 # Specifiying a different version of spl_version and zfs_version may not work
+# due to tight code dependencies
 #
 # Downgrading an already installed version of spl or zfs will not work
 #
+# Upgrading is particularly dangerous, as a system can be left without access
+# to critical filesystems
+#
 # == Authors
 #
-# Geoff Davis <geoff@geoffdavis.com>
+# Geoff Davis <gadavis@ucsd.edu>
 #
 # == Copyright
 #
-# Copyright 2012 Geoff Davis
+# Copyright 2012 The Regents of the University of California
 #
 # == License
 #
@@ -82,11 +91,12 @@
 # limitations under the License.
 #
 class zfsonlinux::install(
-  $version = $zfsonlinux::params::version,
+  $version     = $zfsonlinux::params::version,
   $zfs_version = undef,
   $spl_version = undef,
-  $timeout = $zfsonlinux::params::timeout,
-  $verbose = false
+  $timeout     = $zfsonlinux::params::timeout,
+  $verbose     = false,
+  upgrade      = false
 ) inherits zfsonlinux::params{
 
   ###
@@ -114,6 +124,7 @@ class zfsonlinux::install(
         zfs_version => $real_zfs_version,
         spl_version => $real_spl_version,
         verbose     => $verbose,
+        upgrade     => $upgrade,
       }
       Class['zfsonlinux::reqs::redhat_devel'] -> Class['zfsonlinux::install::redhat']
     }

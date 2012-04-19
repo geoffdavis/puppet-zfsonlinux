@@ -15,16 +15,43 @@ class zfsonlinux::install::redhat (
   $spl_version  = $zfsonlinux::params::version,
   $zfs_version  = $zfsonlinux::params::version,
   $timeout      = $zfsonlinux::params::install_timeout,
-  $verbose      = false
+  $verbose      = false,
+  $upgrade      = false,
 ) inherits zfsonlinux::params {
   ####
   # Check our parameters
   validate_bool($verbose)
 
-  # No-op if we're already at the right version
-  if $::zfsonlinux_zfs_version == $zfs_version {
-    notice "zfsonlinux already at requested version $zfs_version"
-  } else {
+  case $::zfsonlinux_zfs_version {
+    $zfs_version : {
+      # No-op if we're already at the right version
+      notice "zfsonlinux already at requested version $zfs_version"
+      $do_install = false
+    }
+
+    '' : {
+      # If $zfs_version is unset, zfsonlinux is not installed
+      notice "Attempting install of zfsonlinux spl $spl_version, zfs $zfs_version"
+      $do_install = true
+    }
+
+    default : {
+      # zfs_version doesn't match zfsonlinux_zfs_version fact
+      if $upgrade {
+        # We will uninstall the old packages and then install the new ones
+        $do_install = true
+        $do_uninstall_first = true
+      } else {
+        # No-op if zfsonlinux is installed but upgrade is false
+        notice "Not upgrading zfsonlinux. zfsonlinux is at version $zfsonline_zfs_version, requested version $zfs_version, but upgrade is set to false."
+        $do_install = false
+      }
+    }
+
+  }
+
+
+  if $do_install {
     require staging
 
     ####
@@ -35,10 +62,25 @@ class zfsonlinux::install::redhat (
     $spl_installer_tar = "spl-${spl_version}.tar.gz"
     $spl_installer_dir = "spl-${spl_version}"
     $spl_source_url = "${download_dir}/spl/${spl_installer_tar}"
+    $spl_packagenames = [
+      'spl',
+      'spl-modules',
+      'spl-modules-devel',
+    ]
+    $spl_packagenames_s = join($spl_packagenames, ' ')
 
     $zfs_installer_tar = "zfs-${zfs_version}.tar.gz"
     $zfs_installer_dir = "zfs-${zfs_version}"
     $zfs_source_url = "${download_dir}/zfs/${zfs_installer_tar}"
+    $zfs_packagenames = [
+      'zfs',
+      'zfs-dracut',
+      'zfs-modules',
+      'zfs-modules-devel',
+      'zfs-devel',
+      'zfs-test',
+    ]
+    $zfs_packagenames_s = join($zfs_packagenames, ' ')
 
     $manage_exec_logoutput = $verbose ? {
       true    => true,
@@ -53,6 +95,28 @@ class zfsonlinux::install::redhat (
     # Set resource defaults
     ###
     Exec { path => '/usr/local/bin:/usr/bin:/bin', }
+
+    ###
+    # Uninstall existing spl and zfs packages
+    ###
+    if $do_uninstall_first {
+      exec { 'uninstall-for-upgrade ZFS' :
+        command   => "rpm -e ${zfs_packagenames_s}",
+        timeout   => $manage_exec_timeout,
+        logoutput => $manage_exec_logoutput,
+        user      => 0,
+        group     => 0,
+        before    => Exec['uninstall-for-upgrade SPL'],
+      }
+      exec { 'uninstall-for-upgrade SPL' :
+        command => "rpm -e ${spl_packagenames_s}",
+        timeout => $manage_exec_timeout,
+        logoutput => $manage_exec_logoutput,
+        user    => 0,
+        group   => 0,
+        before  => Exec['install spl rpms'],
+      }
+    }
 
     ###
     # Stage the installers
@@ -125,11 +189,11 @@ class zfsonlinux::install::redhat (
     }
 
     exec { 'build zfs':
-      command => 'make rpm',
+      command   => 'make rpm',
       cwd       => "${staging::path}/zfsonlinux/${zfs_installer_dir}",
       logoutput => $manage_exec_logoutput,
       require   => Exec['configure zfs'],
-      timeout      => $manage_exec_timeout,
+      timeout   => $manage_exec_timeout,
     }
 
     exec { 'install zfs rpms':
