@@ -1,3 +1,15 @@
+# === Class: zfsonlinux::install::redhat
+#
+# This class is for internal use only by zfsonlinux::install, and is not
+# intended for general usage.
+#
+# === Parameters:
+#
+# *[download_dir]*
+#    Source URL of the directory containing the tar files.
+#    This can be a URL or a path on local disk. It is used by the staging
+#    module to retrieve the installer tar.gz files.
+#
 class zfsonlinux::install::redhat (
   $download_dir = $zfsonlinux::params::download_dir,
   $spl_version  = $zfsonlinux::params::version,
@@ -5,6 +17,9 @@ class zfsonlinux::install::redhat (
   $timeout      = $zfsonlinux::params::install_timeout,
   $verbose      = false
 ) inherits zfsonlinux::params {
+  ####
+  # Check our parameters
+  validate_bool($verbose)
 
   # No-op if we're already at the right version
   if $::zfsonlinux_zfs_version == $zfs_version {
@@ -26,9 +41,10 @@ class zfsonlinux::install::redhat (
     $zfs_source_url = "${download_dir}/zfs/${zfs_installer_tar}"
 
     $manage_exec_logoutput = $verbose ? {
-      true  => true,
+      true    => true,
       false => on_failure,
     }
+
     $manage_exec_timeout = $timeout
 
     $manage_staging_timeout = $timeout
