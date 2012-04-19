@@ -1,9 +1,25 @@
+# === Class: zfsonlinux::install::redhat
+#
+# This class is for internal use only by zfsonlinux::install, and is not
+# intended for general usage.
+#
+# === Parameters:
+#
+# *[download_dir]*
+#    Source URL of the directory containing the tar files.
+#    This can be a URL or a path on local disk. It is used by the staging
+#    module to retrieve the installer tar.gz files.
+#
 class zfsonlinux::install::redhat (
   $download_dir = $zfsonlinux::params::download_dir,
   $spl_version  = $zfsonlinux::params::version,
   $zfs_version  = $zfsonlinux::params::version,
-  $timeout      = $zfsonlinux::params::install_timeout
+  $timeout      = $zfsonlinux::params::install_timeout,
+  $verbose      = false
 ) inherits zfsonlinux::params {
+  ####
+  # Check our parameters
+  validate_bool($verbose)
 
   # No-op if we're already at the right version
   if $::zfsonlinux_zfs_version == $zfs_version {
@@ -24,6 +40,15 @@ class zfsonlinux::install::redhat (
     $zfs_installer_dir = "zfs-${zfs_version}"
     $zfs_source_url = "${download_dir}/zfs/${zfs_installer_tar}"
 
+    $manage_exec_logoutput = $verbose ? {
+      true    => true,
+      false => on_failure,
+    }
+
+    $manage_exec_timeout = $timeout
+
+    $manage_staging_timeout = $timeout
+
     ###
     # Set resource defaults
     ###
@@ -35,7 +60,7 @@ class zfsonlinux::install::redhat (
 
     staging::file { $spl_installer_tar :
       source  => $spl_source_url,
-      timeout => $timeout,
+      timeout => $manage_staging_timeout,
     }
 
     staging::extract { $spl_installer_tar :
@@ -45,7 +70,7 @@ class zfsonlinux::install::redhat (
 
     staging::file { $zfs_installer_tar :
       source  => $zfs_source_url,
-      timeout => $timeout,
+      timeout => $manage_staging_timeout,
     }
 
     staging::extract { $zfs_installer_tar :
@@ -60,25 +85,26 @@ class zfsonlinux::install::redhat (
     exec { 'configure spl':
       command      => "${staging::path}/zfsonlinux/${spl_installer_dir}/configure",
       cwd          => "${staging::path}/zfsonlinux/${spl_installer_dir}",
-      logoutput    => on_failure,
+      logoutput    => $manage_exec_logoutput,
       #    creates => "${staging::path}/zfsonlinux/${spl_installer_dir}/Makefile",
       require      => Staging::Extract[$spl_installer_tar],
-      timeout      => $timeout,
+      timeout      => $manage_exec_timeout,
     }
 
     exec { 'build spl':
-      command => 'make rpm',
+      command   => 'make rpm',
       cwd       => "${staging::path}/zfsonlinux/${spl_installer_dir}",
-      logoutput => on_failure,
+      logoutput => $manage_exec_logoutput,
       require   => Exec['configure spl'],
-      timeout      => $timeout,
+      timeout   => $manage_exec_timeout,
     }
 
     exec { 'install spl rpms':
       command   => "rpm -Uvh *.${::hardwareisa}.rpm",
       cwd       => "${staging::path}/zfsonlinux/${spl_installer_dir}",
-      logoutput => on_failure,
+      logoutput => $manage_exec_logoutput,
       require   => Exec['build spl'],
+      timeout   => $manage_exec_timeout,
       user      => 0,
       group     => 0,
     }
@@ -89,28 +115,29 @@ class zfsonlinux::install::redhat (
     exec { 'configure zfs':
       command   => "${staging::path}/zfsonlinux/${zfs_installer_dir}/configure",
       cwd       => "${staging::path}/zfsonlinux/${zfs_installer_dir}",
-      logoutput => on_failure,
+      logoutput => $manage_exec_logoutput,
       # creates   => "${staging::path}/zfsonlinux/${zfs_installer_dir}/Makefile",
       require   => [
         Staging::Extract[$zfs_installer_tar],
         Exec['install spl rpms'],
         ],
-      timeout      => $timeout,
+      timeout      => $manage_exec_timeout,
     }
 
     exec { 'build zfs':
       command => 'make rpm',
       cwd       => "${staging::path}/zfsonlinux/${zfs_installer_dir}",
-      logoutput => on_failure,
+      logoutput => $manage_exec_logoutput,
       require   => Exec['configure zfs'],
-      timeout      => $timeout,
+      timeout      => $manage_exec_timeout,
     }
 
     exec { 'install zfs rpms':
       command   => "rpm -Uvh *.${::hardwareisa}.rpm",
       cwd       => "${staging::path}/zfsonlinux/${zfs_installer_dir}",
-      logoutput => on_failure,
+      logoutput => $manage_exec_logoutput,
       require   => Exec['build zfs'],
+      timeout   => $manage_exec_timeout,
       user      => 0,
       group     => 0,
     }
