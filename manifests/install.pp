@@ -92,6 +92,8 @@ class zfsonlinux::install(
   ###
   # Validate parameters
   validate_bool($verbose)
+  validate_string($version)
+  validate_re($timeout, [ '^[0-9]+', '' ])
 
   ###
   # Set up internal variables
