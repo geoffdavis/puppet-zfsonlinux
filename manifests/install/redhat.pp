@@ -2,7 +2,7 @@ class zfsonlinux::install::redhat (
   $download_dir = $zfsonlinux::params::download_dir,
   $spl_version  = $zfsonlinux::params::spl_version,
   $zfs_version  = $zfsonlinux::params::zfs_version,
-  $timeout      = undef
+  $timeout      = $zfsonlinux::params::install_timeout
 ) inherits zfsonlinux::params {
 
   # No-op if we're already at the right version
@@ -58,11 +58,12 @@ class zfsonlinux::install::redhat (
     ##
 
     exec { 'configure spl':
-      command   => "${staging::path}/zfsonlinux/${spl_installer_dir}/configure",
-      cwd       => "${staging::path}/zfsonlinux/${spl_installer_dir}",
-      logoutput => on_failure,
-      #    creates   => "${staging::path}/zfsonlinux/${spl_installer_dir}/Makefile",
-      require   => Staging::Extract[$spl_installer_tar],
+      command      => "${staging::path}/zfsonlinux/${spl_installer_dir}/configure",
+      cwd          => "${staging::path}/zfsonlinux/${spl_installer_dir}",
+      logoutput    => on_failure,
+      #    creates => "${staging::path}/zfsonlinux/${spl_installer_dir}/Makefile",
+      require      => Staging::Extract[$spl_installer_tar],
+      timeout      => $timeout,
     }
 
     exec { 'build spl':
@@ -70,6 +71,7 @@ class zfsonlinux::install::redhat (
       cwd       => "${staging::path}/zfsonlinux/${spl_installer_dir}",
       logoutput => on_failure,
       require   => Exec['configure spl'],
+      timeout      => $timeout,
     }
 
     exec { 'install spl rpms':
@@ -93,6 +95,7 @@ class zfsonlinux::install::redhat (
         Staging::Extract[$zfs_installer_tar],
         Exec['install spl rpms'],
         ],
+      timeout      => $timeout,
     }
 
     exec { 'build zfs':
@@ -100,6 +103,7 @@ class zfsonlinux::install::redhat (
       cwd       => "${staging::path}/zfsonlinux/${zfs_installer_dir}",
       logoutput => on_failure,
       require   => Exec['configure zfs'],
+      timeout      => $timeout,
     }
 
     exec { 'install zfs rpms':
