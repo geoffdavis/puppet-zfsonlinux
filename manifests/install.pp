@@ -23,7 +23,8 @@
 #   The timeout value to use for each step of the staging and build process.
 #
 # [*verbose*]
-#   Turn on verbose mode when building ZFSOnLinux
+#   Turn on verbose mode when building ZFSOnLinux. Should be true or false.
+#   Defaults to false.
 #
 # === Advanced Parameters
 #
@@ -87,6 +88,10 @@ class zfsonlinux::install(
   $timeout = $zfsonlinux::params::timeout,
   $verbose = false
 ) inherits zfsonlinux::params{
+
+  ###
+  # Validate parameters
+  validate_bool($verbose)
 
   ###
   # Set up internal variables
