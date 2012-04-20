@@ -33,6 +33,9 @@ class zfsonlinux::install::redhat (
       # If $zfs_version is unset, zfsonlinux is not installed
       notice "Attempting install of zfsonlinux spl $spl_version, zfs $zfs_version"
       $do_install = true
+      if $::zfsonlinux_spl_version != '' {
+        $do_uninstall_first = true
+      }
     }
 
     default : {
@@ -100,13 +103,15 @@ class zfsonlinux::install::redhat (
     # Uninstall existing spl and zfs packages
     ###
     if $do_uninstall_first {
-      exec { 'uninstall-for-upgrade ZFS' :
-        command   => "rpm -e ${zfs_packagenames_s}",
-        timeout   => $manage_exec_timeout,
-        logoutput => $manage_exec_logoutput,
-        user      => 0,
-        group     => 0,
-        before    => Exec['uninstall-for-upgrade SPL'],
+      if $::zfsonlinux_zfs_version != '' {
+        exec { 'uninstall-for-upgrade ZFS' :
+          command   => "rpm -e ${zfs_packagenames_s}",
+          timeout   => $manage_exec_timeout,
+          logoutput => $manage_exec_logoutput,
+          user      => 0,
+          group     => 0,
+          before    => Exec['uninstall-for-upgrade SPL'],
+        }
       }
       exec { 'uninstall-for-upgrade SPL' :
         command => "rpm -e ${spl_packagenames_s}",
