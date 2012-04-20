@@ -5,13 +5,13 @@ Puppet::Type.type(:zpool).provide(:zfsonlinux) do
   defaultfor :operatingsystem => :linux
 
   def self.instances(hash = {})
-    output=zpool('list', '-H', '-o', 'name').split('\n').map(&:chomp)
+    poolnames=zpool('list', '-H', '-o', 'name').each_line.map(&:chomp)
 
     zpools = []
     hash = {}
-    output.each do |line|
+    poolnames.each do |poolname|
       hash[:provider] = :zfsonlinux
-      hash[:name] = line
+      hash[:name] = poolname
 
       zpools << new(hash)
       hash = {}
