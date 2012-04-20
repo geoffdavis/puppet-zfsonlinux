@@ -31,6 +31,10 @@
 #   this can leave a system unable to access critical filesystems if the ZFS
 #   packages are removed while a system is running.
 #
+# [*dependency*]
+#   If false, the module will not try to install package dependencies.
+#   These must be provided elsewhere in your package configuration
+#
 # === Advanced Parameters
 #
 # [*spl_version*]
@@ -96,7 +100,8 @@ class zfsonlinux::install(
   $spl_version = undef,
   $timeout     = $zfsonlinux::params::timeout,
   $verbose     = false,
-  $upgrade      = false
+  $upgrade     = false,
+  $dependency  = true
 ) inherits zfsonlinux::params{
 
   ###
@@ -118,7 +123,12 @@ class zfsonlinux::install(
 
   case $::osfamily {
     'RedHat' : {
-      class { 'zfsonlinux::reqs::redhat_devel' : }
+      if $dependency {
+        class { 'zfsonlinux::reqs::redhat_devel' :
+          before => Class['zfsonlinux::install::redhat'],
+        }
+      }
+
       class { 'zfsonlinux::install::redhat' :
         timeout     => $timeout,
         zfs_version => $real_zfs_version,
@@ -126,9 +136,10 @@ class zfsonlinux::install(
         verbose     => $verbose,
         upgrade     => $upgrade,
       }
-      Class['zfsonlinux::reqs::redhat_devel'] -> Class['zfsonlinux::install::redhat']
     }
+
     # 'Debian' : { include 'zfsonlinux::install::debian' }
+
     default  : {
       notify('zfsonlinux:install not supported on this platform yet')
     }
