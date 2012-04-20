@@ -4,6 +4,22 @@ Puppet::Type.type(:zpool).provide(:zfsonlinux) do
   commands :zpool => "/sbin/zpool"
   defaultfor :operatingsystem => :linux
 
+  def self.instances(hash = {})
+    output=zpool('list', '-H', '-o', 'name').split('\n').map(&:chomp)
+
+    zpools = []
+    hash = {}
+    output.each do |line|
+      hash[:provider] = :zfsonlinux
+      hash[:name] = line
+
+      zpools << new(hash)
+      hash = {}
+    end
+
+    zpools
+  end
+
   def process_zpool_data(pool_array)
     if pool_array == []
       return Hash.new(:absent)
