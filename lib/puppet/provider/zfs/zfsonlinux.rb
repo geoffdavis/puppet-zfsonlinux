@@ -4,6 +4,22 @@ Puppet::Type.type(:zfs).provide(:zfsonlinux) do
   commands :zfs => "/sbin/zfs"
   defaultfor :operatingsystem => :linux
 
+  def self.instances(hash = {})
+    output=zfs('list', '-t', 'filesystem', '-H', '-o', 'name').each_line.map(&:chomp)
+
+    datasets = []
+    hash = {}
+    output.each do |line|
+      hash[:provider] = :zfsonlinux
+      hash[:name] = line
+
+      datasets << new(hash)
+      hash = {}
+    end
+
+    datasets
+  end
+
   def add_properties
     properties = []
     Puppet::Type.type(:zfs).validproperties.each do |property|
@@ -31,13 +47,24 @@ Puppet::Type.type(:zfs).provide(:zfsonlinux) do
     end
   end
 
-  [:aclinherit, :aclmode, :atime, :canmount, :checksum, :compression, :copies, :devices, :exec, :logbias, :mountpoint, :nbmand, :primarycache, :quota, :readonly, :recordsize, :refquota, :refreservation, :reservation, :secondarycache, :setuid, :shareiscsi, :sharenfs, :sharesmb, :snapdir, :version, :volsize, :vscan, :xattr, :zoned, :vscan].each do |field|
+  [:aclinherit, :atime, :canmount, :checksum, :compression, :copies, :devices, :exec, :logbias, :mountpoint, :nbmand, :primarycache, :quota, :readonly, :recordsize, :refquota, :refreservation, :reservation, :secondarycache, :setuid, :shareiscsi, :sharenfs, :sharesmb, :snapdir, :version, :volsize, :vscan, :xattr, :zoned, :vscan].each do |field|
     define_method(field) do
       zfs(:get, "-H", "-o", "value", field, @resource[:name]).strip
     end
 
     define_method(field.to_s + "=") do |should|
       zfs(:set, "#{field}=#{should}", @resource[:name])
+    end
+  end
+
+  # These aren't valid properties in the zfsonlinux implementation
+  [:aclmode, :shareiscsi].each do |field|
+    define_method(field) do
+      nil
+    end
+
+    define_method(field.to_s + "=") do |should|
+      nil
     end
   end
 
