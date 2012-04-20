@@ -45,22 +45,31 @@ if Facter.value(:kernel) == 'Linux'
       zfsonlinux_present.to_s
     end
   end
+end
 
-  if zfsonlinux_present
 
-    Facter.add('zfs_version') do
-      setcode do
-        zfs_v = Facter::Util::Resolution.exec('zfs upgrade -v')
-        zfs_version = zfs_v.scan(/^\s+(\d+)\s+/m).flatten.last unless zfs_v.nil?
-      end
+Facter.add(:zfs_version) do
+  confine :kernel => :linux
+  confine :zfsonlinux_present => :true
+  setcode do
+    zfs_v = Facter::Util::Resolution.exec('zfs upgrade -v')
+    if zfs_v
+      zfs_v.scan(/^\s+(\d+)\s+/m).flatten.last
+    else
+      nil
     end
+  end
+end
 
-    Facter.add('zpool_version') do
-      setcode do
-        zpool_v = Facter::Util::Resolution.exec('zpool upgrade -v')
-        zpool_version = zpool_v.match(/ZFS pool version (\d+)./).captures.first unless zpool_v.nil?
-      end
+Facter.add(:zpool_version) do
+  confine :kernel => :linux
+  confine :zfsonlinux_present => :true
+  setcode do
+    zpool_v = Facter::Util::Resolution.exec('zpool upgrade -v')
+    if zpool_v
+      zpool_v.match(/ZFS pool version (\d+)./).captures.first
+    else
+      nil
     end
-
   end
 end
