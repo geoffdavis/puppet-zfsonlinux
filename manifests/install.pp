@@ -96,7 +96,7 @@ class zfsonlinux::install(
   $spl_version = undef,
   $timeout     = $zfsonlinux::params::timeout,
   $verbose     = false,
-  upgrade      = false
+  $upgrade      = false
 ) inherits zfsonlinux::params{
 
   ###
