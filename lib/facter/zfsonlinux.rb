@@ -36,7 +36,7 @@ if Facter.value(:kernel) == 'Linux'
   end
 
   zfsonlinux_present=false
-  if zfs_version
+  if zfs_version != ''
     zfsonlinux_present=true
   end
 
