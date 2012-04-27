@@ -1,6 +1,6 @@
 puppet-zfsonlinux
 
-Version: 0.1
+Version: 0.1.1
 Author: Geoff Davis <gadavis@ucsd.edu>
 
 Description:
