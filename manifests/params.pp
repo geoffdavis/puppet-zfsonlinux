@@ -2,10 +2,10 @@
 class zfsonlinux::params {
   # basic sanity checking
   if $::kernel != 'Linux' {
-    fail('ZFSOnLinux can only be run on Linux, hence it\'s name, genius.')
+    fail('ZFSOnLinux can only be run on Linux.')
   }
 
-  $version = '0.6.0-rc8'
+  $version = '0.6.0-rc9'
   $download_dir = 'http://github.com/downloads/zfsonlinux'
   $install_timeout = '1200'
 }
