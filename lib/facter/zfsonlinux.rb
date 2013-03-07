@@ -61,25 +61,25 @@ Facter.add(:zfs_version) do
   end
 end
 
-Facter.add(:zpool_version) do
-  confine :kernel => :linux
-  confine :zfsonlinux_present => :true
-  setcode do
-    zpool_v = Facter::Util::Resolution.exec('zpool upgrade -v')
-    if zpool_v
-      # ZFS pool version XX
-      version_match=zpool_v.match(/ZFS pool version (\d+)./)
-      if version_match
-        return version_match.captures.first
-      end
-      # VER  DESCRIPTION
-      # ---  --------------------------------------------------------
-      #  1   Initial ZFS version
-      # ...
-      #  28  Multiple vdev replacements
-      zpool_v.scan(/^( {1}\d+)\s{2,3}.\w+/).last.first.to_i
-    else
-      nil
-    end
-  end
-end
+# Facter.add(:zpool_version) do
+#  confine :kernel => :linux
+#  confine :zfsonlinux_present => :true
+#  setcode do
+#    zpool_v = Facter::Util::Resolution.exec('zpool upgrade -v')
+#    if zpool_v
+#      # ZFS pool version XX
+#      version_match=zpool_v.match(/ZFS pool version (\d+)./)
+#      if version_match
+#        return version_match.captures.first
+#      end
+#      # VER  DESCRIPTION
+#      # ---  --------------------------------------------------------
+#      #  1   Initial ZFS version
+#      # ...
+#      #  28  Multiple vdev replacements
+#      zpool_v.scan(/^( {1}\d+)\s{2,3}.\w+/).last.first.to_i
+#    else
+#      nil
+#    end
+#  end
+#end
