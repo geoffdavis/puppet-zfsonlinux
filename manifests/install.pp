@@ -141,7 +141,7 @@ class zfsonlinux::install(
     # 'Debian' : { include 'zfsonlinux::install::debian' }
 
     default  : {
-      notify('zfsonlinux:install not supported on this platform yet')
+      notice('zfsonlinux:install not supported on this platform yet')
     }
   }
 }
