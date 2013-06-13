@@ -1,4 +1,4 @@
 fixtures:
   symlinks:
-    zfsonline: "#{source_dir}"
+    zfsonlinux: "#{source_dir}"
     stdlib: "#{source_dir}/../stdlib"
